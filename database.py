@@ -34,11 +34,10 @@ class Data:
         self.timestamp = timestamp
         self.force = max(F1, F2, F3, F4, F5)
         self.acceleration = math.sqrt(math.pow(AX, 2) +
-                                      math.pow (AY, 2) +
-                                      math.pow(AZ, 2))/0.1458
+                                      math.pow (AY, 2))/0.1458
         self.high_risk = self.acceleration >= 6814.81
         self.med_risk = not self.high_risk and self.acceleration >= 6265.5
-        self.low_risk = not self.med_risk and not self.high_risk and self.acceleration >= 30 #5572.35
+        self.low_risk = not self.med_risk and not self.high_risk and self.acceleration >= 70 #5572.35
 
     @staticmethod
     def from_json(self, json):
@@ -51,18 +50,21 @@ class Data:
                     json['AccelX'],
                     json['AccelY'],
                     json['AccelZ'])
-
     def write(self):
         # Only write datum indicating risk
         if (self.low_risk or self.med_risk or self.high_risk):
-            q="INSERT INTO arduino_data VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)"
+            q="""
+            INSERT INTO arduino_data 
+            (FSensor1, FSensor2, FSensor3, FSensor4, FSensor5, AccelX, AccelY,
+            AccelZ, timestamp)
+            VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """
+            print (self.acceleration)
             data = (self.F1, self.F2, self.F3, self.F4, self.F5, self.AX, self.AY,
                     self.AZ, self.timestamp)
             with sqlite3.connect(DATABASE_PATH) as conn:
                 c = conn.cursor()
                 c.execute(q, data)
-                c.commit()
-
     @staticmethod
     def get_all():
         q="""

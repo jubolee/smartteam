@@ -38,16 +38,11 @@ def main():
     print("ENTERING LOOP")
     while True:
         try:
-            bt_data =ser.readline().decode("utf-8").replace('\n', '')
-            print(bt_data)
-            with open(SENSOR_DATA_PATH,"a") as f: # writing data to csv (each data point is one row)
-                writer = csv.writer(f,delimiter=",")
-                writer.writerow([time.time(),bt_data])
-                print("wrote to csv")
-                bt_data = Data.from_json(json.loads(bt_data))
-                bt_data.write()
-                
-
+            bt=ser.read_until(b'\x3B').decode("utf-8").replace(';', '') .split(',')
+            assert(8 == len(bt))
+            bt = [float(x) for x in bt]
+            bt_data = Data(bt[0], bt[1], bt[2], bt[3], 0, bt[4], bt[5], bt[6])
+            bt_data.write()
         except KeyboardInterrupt:
             print('KeyboardInterrupt found, exiting')
             exit()
